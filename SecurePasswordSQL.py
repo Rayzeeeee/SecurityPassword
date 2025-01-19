@@ -26,7 +26,7 @@ def database_add_account():
                         (username, password_entry, PIN))
             database.commit()
             print("Ajout effectué")
-            Choice_option()
+            Initialize()
 
     except Exception as es:
         print(f"Erreur de connexion : {str(es)}")
@@ -35,21 +35,67 @@ def database_add_password():
     try:
         cursor = database.cursor()
 
-        cursor.execute("SELECT * FROM password gestion WHERE Plateforme=%s", (Add,))
+        cursor.execute("SELECT * FROM password_gestion WHERE Plateforme=%s", (Add,))
         row = cursor.fetchone()
         
         if row is not None:
             print("Plateforme déjà utilisé")
         else:
-            cursor.execute("INSERT INTO password_gestion (Plateforme, Password) VALUES (%s, %s)",
+            cursor.execute("INSERT INTO password_gestion (Username, Plateforme, Password) VALUES (%s, %s, %s)",
                         (verification_username, Add, password))
             database.commit()
             print("Ajout effectué !")
-            Verification()
+            Choice_option()
         
     except Exception as es:
         print(f"Erreur de connexion : {str(es)}")
 
+def database_view_password():
+    try:
+        cursor_plateforme = database.cursor()
+        cursor_password = database.cursor()
+
+        sql_plateforme = "SELECT Plateforme FROM password_gestion WHERE Username=%s"
+        sql_password = "SELECT Password FROM password_gestion WHERE Username=%s"
+
+        cursor_plateforme.execute(f"{sql_plateforme}, {verification_password_entry}")
+        plateforme = cursor_plateforme.fetchone()
+
+        cursor_password.execute(sql_password, {verification_password_entry})
+        password_data = cursor_password.fetchone()
+        database.commit()
+
+        print(f"The password for {plateforme} is : {password_data}")
+        Choice_option()
+
+    except Exception as es:
+        print(f"Erreur de connexion : {str(es)}")
+
+def database_connect():
+    try:
+        cursor_connect_username = database.cursor()
+        cursor_connect_password = database.cursor()
+        cursor_connect_PIN = database.cursor()
+
+        sql_connect_username = "SELECT Username FROM infos"
+        sql_connect_password = "SELECT Password FROM infos"
+        sql_connect_PIN = "SELECT PIN FROM infos"
+
+        cursor_connect_username.execute({sql_connect_username})
+        cursor_username = cursor_connect_username.fetchone()
+
+        cursor_connect_password.execute({sql_connect_password})
+        cursor_password = cursor_connect_password.fetchone()
+
+        cursor_connect_PIN.execute({sql_connect_PIN})
+        cursor_PIN = cursor_connect_PIN.fetchone()
+
+        if((verification_username and verification_password_entry and verification_PIN) in (cursor_username and cursor_password and cursor_PIN)):
+            Choice_option()
+        else:
+            print("Account not existed")
+    except Exception as es:
+        print(f"Erreur de connextion : {str(es)}")
 
 
 # Create profil
@@ -69,7 +115,7 @@ def Create():
     PIN = int(input("Enter a PIN :"))
     
     print("Account was created !\n-----------------------------------------------")
-    Verification() # Call Verification function
+    database_add_account()() # Call Verification function
 
 #Verification profil
 def Verification():
@@ -79,13 +125,7 @@ def Verification():
     verification_username = input("Enter your username :")
     verification_password_entry = input("Enter your password :")
     verification_PIN = int(input("Enter your PIN :"))
-
-    if verification_username==username:
-        if(verification_password_entry==password_entry):
-            if(verification_PIN==PIN):
-                database_add_account()
-            else:
-                print("Incorrect password !")
+    database_connect()
 
 # Choice option
 def Choice_option():
@@ -105,7 +145,7 @@ def View_password():
     if(Search in password_list):
         the_password = password_list.get(Search)
         print(f"The password for {Search} is : {the_password}")
-        Verification() # Call Verification function
+        database_view_password() # Call Verification function
     else:
         print(f"No password is register in {Search}")
         Verification() # Call Verification function
