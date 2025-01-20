@@ -33,6 +33,10 @@ def database_add_account():
 
 def database_add_password():
     try:
+        database = pymysql.connect(host="localhost",
+                              user="root",
+                              password="",
+                              database="securepassword")  # Connexion à la base de données
         cursor = database.cursor()
 
         cursor.execute("SELECT * FROM password_gestion WHERE Plateforme=%s", (Add,))
@@ -40,6 +44,7 @@ def database_add_password():
         
         if row is not None:
             print("Plateforme déjà utilisé")
+            row = None
         else:
             cursor.execute("INSERT INTO password_gestion (Username, Plateforme, Password) VALUES (%s, %s, %s)",
                         (verification_username, Add, password))
@@ -52,46 +57,60 @@ def database_add_password():
 
 def database_view_password():
     try:
+        database = pymysql.connect(host="localhost",
+                              user="root",
+                              password="",
+                              database="securepassword")  # Connexion à la base de données
         cursor_plateforme = database.cursor()
         cursor_password = database.cursor()
 
-        sql_plateforme = "SELECT Plateforme FROM password_gestion WHERE Username=%s"
-        sql_password = "SELECT Password FROM password_gestion WHERE Username=%s"
-
-        cursor_plateforme.execute(f"{sql_plateforme}, {verification_password_entry}")
+        cursor_plateforme.execute(f"SELECT Plateforme FROM password_gestion WHERE Username= '{verification_username}'")
         plateforme = cursor_plateforme.fetchone()
 
-        cursor_password.execute(sql_password, {verification_password_entry})
+        cursor_password.execute(f"SELECT Password FROM password_gestion WHERE Username= '{verification_username}'")
         password_data = cursor_password.fetchone()
         database.commit()
 
-        print(f"The password for {plateforme} is : {password_data}")
-        Choice_option()
+        if(Search in plateforme):
+            print(f"The password for {plateforme} is : {password_data}")
+            Choice_option()
+        else:
+            print("Pas de mot de passe pour cette plateforme")
+
 
     except Exception as es:
         print(f"Erreur de connexion : {str(es)}")
 
 def database_connect():
     try:
+        database = pymysql.connect(host="localhost",
+                              user="root",
+                              password="",
+                              database="securepassword")  # Connexion à la base de données
+
         cursor_connect_username = database.cursor()
         cursor_connect_password = database.cursor()
         cursor_connect_PIN = database.cursor()
 
-        sql_connect_username = "SELECT Username FROM infos"
-        sql_connect_password = "SELECT Password FROM infos"
-        sql_connect_PIN = "SELECT PIN FROM infos"
+        sql_connect_username = (f"SELECT Username FROM infos WHERE Username= '{verification_username}' ")
+        sql_connect_password = (f"SELECT Password FROM infos WHERE Password= '{verification_password_entry}' ")
+        sql_connect_PIN = (f"SELECT PIN FROM infos WHERE PIN= '{verification_PIN}' ")
 
-        cursor_connect_username.execute({sql_connect_username})
+        cursor_connect_username.execute(sql_connect_username)
         cursor_username = cursor_connect_username.fetchone()
 
-        cursor_connect_password.execute({sql_connect_password})
+        cursor_connect_password.execute(sql_connect_password)
         cursor_password = cursor_connect_password.fetchone()
 
-        cursor_connect_PIN.execute({sql_connect_PIN})
+        cursor_connect_PIN.execute(sql_connect_PIN)
         cursor_PIN = cursor_connect_PIN.fetchone()
+        database.commit()
 
-        if((verification_username and verification_password_entry and verification_PIN) in (cursor_username and cursor_password and cursor_PIN)):
-            Choice_option()
+        if(verification_username in cursor_username):
+           if(verification_password_entry in cursor_password):
+             if(verification_PIN in cursor_PIN):  
+                print("Connexion réussi !")
+                Choice_option()
         else:
             print("Account not existed")
     except Exception as es:
@@ -100,10 +119,10 @@ def database_connect():
 
 # Create profil
 def Initialize():
-    create_sign = input("Create or Sign-up ?")
-    if(create_sign=="Create"):
-        Create()
+    create_sign = input("Sign-up or Login ?")
     if(create_sign=="Sign-up"):
+        Create()
+    if(create_sign=="Login"):
         Verification()
 
 def Create():
@@ -140,15 +159,11 @@ def Choice_option():
 
 # View password
 def View_password():
+    global Search
     Search = input("What password search ?")
 
-    if(Search in password_list):
-        the_password = password_list.get(Search)
-        print(f"The password for {Search} is : {the_password}")
-        database_view_password() # Call Verification function
-    else:
-        print(f"No password is register in {Search}")
-        Verification() # Call Verification function
+    database_view_password() # Call Verification function
+
         
 
 #Add password
