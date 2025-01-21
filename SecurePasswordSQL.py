@@ -64,13 +64,12 @@ def database_view_password():
         cursor_plateforme = database.cursor()
         cursor_password = database.cursor()
 
-        cursor_plateforme.execute(f"SELECT Plateforme FROM password_gestion WHERE Username= '{verification_username}'")
+        cursor_plateforme.execute(f"SELECT Plateforme FROM password_gestion WHERE Plateforme= '{Search}'")
         plateforme = cursor_plateforme.fetchone()
 
-        cursor_password.execute(f"SELECT Password FROM password_gestion WHERE Username= '{verification_username}'")
+        cursor_password.execute(f"SELECT Password FROM password_gestion WHERE Plateforme= '{Search}'")
         password_data = cursor_password.fetchone()
-        database.commit()
-
+        
         if(Search in plateforme):
             print(f"The password for {plateforme} is : {password_data}")
             Choice_option()
@@ -92,9 +91,9 @@ def database_connect():
         cursor_connect_password = database.cursor()
         cursor_connect_PIN = database.cursor()
 
-        sql_connect_username = (f"SELECT Username FROM infos WHERE Username= '{verification_username}' ")
-        sql_connect_password = (f"SELECT Password FROM infos WHERE Password= '{verification_password_entry}' ")
-        sql_connect_PIN = (f"SELECT PIN FROM infos WHERE PIN= '{verification_PIN}' ")
+        sql_connect_username = (f"SELECT * FROM infos WHERE Username= '{verification_username}' ")
+        sql_connect_password = (f"SELECT * FROM infos WHERE Password= '{verification_password_entry}' ")
+        sql_connect_PIN = (f"SELECT * FROM infos WHERE PIN= '{verification_PIN}' ")
 
         cursor_connect_username.execute(sql_connect_username)
         cursor_username = cursor_connect_username.fetchone()
@@ -104,7 +103,6 @@ def database_connect():
 
         cursor_connect_PIN.execute(sql_connect_PIN)
         cursor_PIN = cursor_connect_PIN.fetchone()
-        database.commit()
 
         if(verification_username in cursor_username):
            if(verification_password_entry in cursor_password):
