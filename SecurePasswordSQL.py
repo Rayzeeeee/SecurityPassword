@@ -1,8 +1,6 @@
-import random
-import string
-import pymysql
-
-password_list = {} # Create password dictionnary
+import random # Random parameter
+import string  # String parameters (lowercase letter, special letter ...)
+import pymysql # mysql and python
 
 
 def database_add_account():
@@ -11,7 +9,7 @@ def database_add_account():
         database = pymysql.connect(host="localhost",
                               user="root",
                               password="",
-                              database="securepassword")  # Connexion à la base de données
+                              database="securepassword")  # Database connection
         cursor = database.cursor()
 
         # Vérification si l'email existe déjà
@@ -37,20 +35,15 @@ def database_add_password():
                               user="root",
                               password="",
                               database="securepassword")  # Connexion à la base de données
-        cursor = database.cursor()
+        cursor_add_password = database.cursor()
 
-        cursor.execute("SELECT * FROM password_gestion WHERE Plateforme=%s", (Add,))
-        row = cursor.fetchone()
-        
-        if row is not None:
-            print("Plateforme déjà utilisé")
-            row = None
-        else:
-            cursor.execute("INSERT INTO password_gestion (Username, Plateforme, Password) VALUES (%s, %s, %s)",
-                        (verification_username, Add, password))
-            database.commit()
-            print("Ajout effectué !")
-            Choice_option()
+        cursor_add_password.execute("SELECT * FROM password_gestion WHERE Username=%s AND Plateforme=%s", (verification_username, Add))
+
+        cursor_add_password.execute("INSERT INTO password_gestion (Username, Plateforme, Password) VALUES (%s, %s, %s)",
+                (verification_username, Add, password))
+        database.commit()
+        print("Ajout effectué !")
+        Choice_option()
         
     except Exception as es:
         print(f"Erreur de connexion : {str(es)}")
@@ -61,20 +54,19 @@ def database_view_password():
                               user="root",
                               password="",
                               database="securepassword")  # Connexion à la base de données
-        cursor_plateforme = database.cursor()
-        cursor_password = database.cursor()
+        cursor_view = database.cursor()
 
-        cursor_plateforme.execute(f"SELECT Plateforme FROM password_gestion WHERE Plateforme= '{Search}'")
-        plateforme = cursor_plateforme.fetchone()
+        cursor_view.execute(f"SELECT Plateforme, Password FROM password_gestion WHERE Username= %s AND Plateforme= %s", (verification_username, Search))
+        view = cursor_view.fetchall() # stocker la valeur de la table à la position Plateforme et Password en fonction du compte et de ce qu'il y a été taper dans le choix de la recherche
 
-        cursor_password.execute(f"SELECT Password FROM password_gestion WHERE Plateforme= '{Search}'")
-        password_data = cursor_password.fetchone()
         
-        if(Search in plateforme):
-            print(f"The password for {plateforme} is : {password_data}")
+        if(view):
+            for plateforme, password_data in view:
+                print(f"The password for {plateforme} is : {password_data}")
             Choice_option()
         else:
             print("Pas de mot de passe pour cette plateforme")
+            Choice_option()
 
 
     except Exception as es:
@@ -166,7 +158,6 @@ def View_password():
 
 #Add password
 def Add_password():
-    global password_list
     global Add
     global password
     Add = input("Enter the website or application :") 
@@ -174,9 +165,6 @@ def Add_password():
     alphabet_min = string.ascii_letters + string.punctuation # The character of password is all letters and punctuation
 
     password = ''.join(random.choice(alphabet_min) for i in range(1, 15)) # Randomization of the password
-    print(f"The password for {Add} is : {password}")
-        
-    password_list[Add] = password # Add a argument at the list
     
     database_add_password() # Call Verification function
     
