@@ -106,6 +106,22 @@ def database_connect():
     except Exception as es:
         print(f"Erreur de connextion : {str(es)}")
 
+def delete_password_sql():
+    try:
+        database = pymysql.connect(host="localhost",
+                              user="root",
+                              password="",
+                              database="securepassword")  # Connexion à la base de données
+        cursor_delete_password = database.cursor()
+        
+        cursor_delete_password.execute(f"DELETE FROM password_gestion WHERE Plateforme=%s", (delete_entry))
+        cursor_delete = cursor_delete_password.fetchone()
+        print(f"Deleted success for {cursor_delete} !")
+        Choice_option()
+
+    except Exception as es:
+        print(f"Erreur de connextion : {str(es)}")
+
 
 # Create profil
 def Initialize():
@@ -138,13 +154,16 @@ def Verification():
 
 # Choice option
 def Choice_option():
-    choice = input("Would you like to add a password or view a password? (Add / View)")
+    choice = input("Would you like to add a password or view a password? (Add / View / Delete)")
 
     if (choice=="Add"):
        Add_password() # Call Add_password function
 
     if(choice=="View"):
        View_password() # Call View_password function
+
+    if(choice=="Delete"):
+        delete_password() # Call Delete_password function
 
 
 # View password
@@ -154,6 +173,10 @@ def View_password():
 
     database_view_password() # Call Verification function
 
+def delete_password():
+    global delete_entry
+    delete_entry = input("Quelle mot de passe de plateforme voulez-vous supprimer ?")
+    delete_password_sql()
         
 
 #Add password
