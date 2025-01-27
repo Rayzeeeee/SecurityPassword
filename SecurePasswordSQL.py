@@ -2,90 +2,83 @@ import random # Random parameter
 import string  # String parameters (lowercase letter, special letter ...)
 import pymysql # mysql and python
 
+database = pymysql.connect(host="localhost",
+                              user="root",
+                              password="",
+                              database="securepassword")  # Connecting to the database
 
+# Add account function sql
 def database_add_account():
     global database
     try:
-        database = pymysql.connect(host="localhost",
-                              user="root",
-                              password="",
-                              database="securepassword")  # Database connection
-        cursor = database.cursor()
+        cursor = database.cursor() # Create a cursor in the database
 
-        # Vérification si l'email existe déjà
-        cursor.execute("SELECT * FROM infos WHERE Username=%s", (username,))
+        cursor.execute("SELECT * FROM accounts WHERE Username=%s", (username,)) # Select all in "accounts" in Username
         row = cursor.fetchone()
 
+        # Check if the username already exists
         if row is not None:
-            print("Username déjà utilisé")
+            print("Existing username")
         else:
-            # Insertion des données
-            cursor.execute("INSERT INTO infos (Username, Password, PIN) VALUES (%s, %s, %s)",
-                        (username, password_entry, PIN))
-            database.commit()
-            print("Ajout effectué")
+            # Adding data in the database
+            cursor.execute("INSERT INTO accounts (Username, Password, PIN) VALUES (%s, %s, %s)", (username, password_entry, PIN)) # Insert into accounts values(Username, Password and PIN)
+            database.commit() # Add in the database
             Initialize()
 
     except Exception as es:
-        print(f"Erreur de connexion : {str(es)}")
+        # Error message
+        print(f"Connection error : {str(es)}")
 
+# Add password function sql
 def database_add_password():
     try:
-        database = pymysql.connect(host="localhost",
-                              user="root",
-                              password="",
-                              database="securepassword")  # Connexion à la base de données
-        cursor_add_password = database.cursor()
+        cursor_add_password = database.cursor() # Create a cursor in the database
 
-        cursor_add_password.execute("SELECT * FROM password_gestion WHERE Username=%s AND Plateforme=%s", (verification_username, Add))
+        cursor_add_password.execute("SELECT * FROM password WHERE Username=%s AND Platform=%s", (check_username, Add)) # Select all in "password" in values of Username and Platform
 
-        cursor_add_password.execute("INSERT INTO password_gestion (Username, Plateforme, Password) VALUES (%s, %s, %s)",
-                (verification_username, Add, password))
-        database.commit()
-        print("Ajout effectué !")
-        Choice_option()
+        cursor_add_password.execute("INSERT INTO password (Username, Platform, Password) VALUES (%s, %s, %s)", (check_username, Add, password)) # Insert into password values (Username, Platform and Password)
+        database.commit() # Add in the database
+        print("Password created !")
+        Choice_option() # Return to the choice_option
         
     except Exception as es:
-        print(f"Erreur de connexion : {str(es)}")
+        # Error message
+        print(f"Connection error : {str(es)}")
 
+# View password function sql
 def database_view_password():
     try:
-        database = pymysql.connect(host="localhost",
-                              user="root",
-                              password="",
-                              database="securepassword")  # Connexion à la base de données
-        cursor_view = database.cursor()
+        cursor_view = database.cursor() # Create a cursor in the database
 
-        cursor_view.execute(f"SELECT Plateforme, Password FROM password_gestion WHERE Username= %s AND Plateforme= %s", (verification_username, Search))
-        view = cursor_view.fetchall() # stocker la valeur de la table à la position Plateforme et Password en fonction du compte et de ce qu'il y a été taper dans le choix de la recherche
+        cursor_view.execute(f"SELECT Platform, Password FROM password WHERE Username= %s AND Platform= %s", (check_username, Search)) # Select Platform and Password in password in Username and Platform values
+        view = cursor_view.fetchall() # stock all the result of the select 
 
-        
         if(view):
-            for plateforme, password_data in view:
-                print(f"The password for {plateforme} is : {password_data}")
+            for platforme, password_data in view:
+                print(f"The password for {platforme} is : {password_data}") # Show the platform and password
             Choice_option()
         else:
-            print("Pas de mot de passe pour cette plateforme")
-            Choice_option()
+            # Error message
+            print("No password for the platform")
+            Choice_option() # Return to the choice_option
 
 
     except Exception as es:
-        print(f"Erreur de connexion : {str(es)}")
+        # Error message for the database 
+        print(f"Connection error : {str(es)}")
 
+# Connect account function sql
 def database_connect():
     try:
-        database = pymysql.connect(host="localhost",
-                              user="root",
-                              password="",
-                              database="securepassword")  # Connexion à la base de données
 
-        cursor_connect_username = database.cursor()
-        cursor_connect_password = database.cursor()
+        cursor_connect_username = database.cursor() # Create a cursor in the database
+        cursor_connect_password = database.cursor() 
         cursor_connect_PIN = database.cursor()
 
-        sql_connect_username = (f"SELECT * FROM infos WHERE Username= '{verification_username}' ")
-        sql_connect_password = (f"SELECT * FROM infos WHERE Password= '{verification_password_entry}' ")
-        sql_connect_PIN = (f"SELECT * FROM infos WHERE PIN= '{verification_PIN}' ")
+        # Select all in the account in Username, Password and PIN
+        sql_connect_username = (f"SELECT * FROM accounts WHERE Username= '{check_username}' ")
+        sql_connect_password = (f"SELECT * FROM accounts WHERE Password= '{check_password}' ")
+        sql_connect_PIN = (f"SELECT * FROM accounts WHERE PIN= '{check_PIN}' ")
 
         cursor_connect_username.execute(sql_connect_username)
         cursor_username = cursor_connect_username.fetchone()
@@ -96,65 +89,70 @@ def database_connect():
         cursor_connect_PIN.execute(sql_connect_PIN)
         cursor_PIN = cursor_connect_PIN.fetchone()
 
-        if(verification_username in cursor_username):
-           if(verification_password_entry in cursor_password):
-             if(verification_PIN in cursor_PIN):  
-                print("Connexion réussi !")
-                Choice_option()
+        # if the values correspond to a account
+        if(check_username in cursor_username):
+           if(check_password in cursor_password):
+             if(check_PIN in cursor_PIN):  
+                print("Successfully connected !")
+                Choice_option() # Return to the choice_option
         else:
+            # Error message
             print("Account not existed")
     except Exception as es:
-        print(f"Erreur de connextion : {str(es)}")
+        # Error message sql
+        print(f"Connection error : {str(es)}")
 
+# Delete password function sql
 def delete_password_sql():
     try:
-        database = pymysql.connect(host="localhost",
-                              user="root",
-                              password="",
-                              database="securepassword")  # Connexion à la base de données
-        cursor_delete_password = database.cursor()
+        cursor_delete_password = database.cursor() # Create a cursor in the database
         
-        cursor_delete_password.execute(f"DELETE FROM password_gestion WHERE Plateforme=%s", (delete_entry))
-        cursor_delete = cursor_delete_password.fetchone()
-        print(f"Deleted success for {cursor_delete} !")
-        Choice_option()
+        cursor_delete_password.execute(f"DELETE FROM password WHERE Platform=%s", (delete_entry)) # Delete in password the values plateform
+        database.commit() # Add in the database
+        
+        print("Successfully delete !")
+        Choice_option() # Return to the choice_option
 
     except Exception as es:
-        print(f"Erreur de connextion : {str(es)}")
+        # Error message sql
+        print(f"Connection error : {str(es)}")
 
+# -----------------------------------------------------------------------------------------------------------
 
 # Create profil
 def Initialize():
     create_sign = input("Sign-up or Login ?")
-    if(create_sign=="Sign-up"):
-        Create()
-    if(create_sign=="Login"):
-        Verification()
+    if(create_sign=="Sign-up"): # Sign-up -> Create_account function
+        Create_account()
+    if(create_sign=="Login"): # Sign-up -> Connect function
+        Connect()
 
-def Create():
+# Create account 
+def Create_account():
     global username
     global PIN
     global password_entry
+    # Entry for create
     username = input("Enter a username : ")
     password_entry = input("Enter a password :")
-    PIN = int(input("Enter a PIN :"))
+    PIN = int(input("Enter a PIN (max 4 : integer):"))
     
-    print("Account was created !\n-----------------------------------------------")
+    print("Account was created !\n-----------------------------------------------") # Separation
     database_add_account()() # Call Verification function
 
-#Verification profil
-def Verification():
-    global verification_username
-    global verification_PIN
-    global verification_password_entry
-    verification_username = input("Enter your username :")
-    verification_password_entry = input("Enter your password :")
-    verification_PIN = int(input("Enter your PIN :"))
+#Connect to a account
+def Connect():
+    global check_username
+    global check_PIN
+    global check_password
+    check_username = input("Enter your username :")
+    check_password = input("Enter your password :")
+    check_PIN = int(input("Enter your PIN :"))
     database_connect()
 
 # Choice option
 def Choice_option():
-    choice = input("Would you like to add a password or view a password? (Add / View / Delete)")
+    choice = input("Would you like to add a password or view a password? (Add / View / Delete)") # Choice option entry
 
     if (choice=="Add"):
        Add_password() # Call Add_password function
@@ -163,7 +161,7 @@ def Choice_option():
        View_password() # Call View_password function
 
     if(choice=="Delete"):
-        delete_password() # Call Delete_password function
+        Delete_password() # Call Delete_password function
 
 
 # View password
@@ -173,9 +171,10 @@ def View_password():
 
     database_view_password() # Call Verification function
 
-def delete_password():
+# Delete password
+def Delete_password():
     global delete_entry
-    delete_entry = input("Quelle mot de passe de plateforme voulez-vous supprimer ?")
+    delete_entry = input("Which password do you want to delete ?") # Delete password entry
     delete_password_sql()
         
 
@@ -183,7 +182,7 @@ def delete_password():
 def Add_password():
     global Add
     global password
-    Add = input("Enter the website or application :") 
+    Add = input("Enter the website or application :") # Add password entry
 
     alphabet_min = string.ascii_letters + string.punctuation # The character of password is all letters and punctuation
 
@@ -191,5 +190,4 @@ def Add_password():
     
     database_add_password() # Call Verification function
     
-
 Initialize()
